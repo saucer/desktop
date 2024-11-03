@@ -61,3 +61,11 @@ if (saucer_backend STREQUAL "WebKitGtk")
 
   target_sources(${PROJECT_NAME} PRIVATE ${gtk_sources})
 endif()
+
+if (saucer_backend STREQUAL "WebView2")
+  file(GLOB win_sources
+    "src/win32.*cpp"
+  )
+
+  target_sources(${PROJECT_NAME} PRIVATE ${win_sources})
+endif()
