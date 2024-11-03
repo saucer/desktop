@@ -32,23 +32,13 @@ namespace saucer::modules
         return gtk_file_launcher_launch(launcher.get(), nullptr, nullptr, nullptr, nullptr);
     }
 
-    picker::result_t<picker::type::file> convert(GFile *file)
+    fs::path convert(GFile *file)
     {
-        if (!file)
-        {
-            return std::nullopt;
-        }
-
         return g_file_get_path(file);
     }
 
-    picker::result_t<picker::type::files> convert(GListModel *files)
+    std::vector<fs::path> convert(GListModel *files)
     {
-        if (!files)
-        {
-            return std::nullopt;
-        }
-
         const auto count = g_list_model_get_n_items(files);
 
         std::vector<fs::path> rtn;
@@ -108,7 +98,15 @@ namespace saucer::modules
         auto callback = [](auto *dialog, auto *result, void *data)
         {
             auto *value = finish(GTK_FILE_DIALOG(dialog), result, nullptr);
-            reinterpret_cast<decltype(promise) *>(data)->set_value(convert(value));
+            auto *res   = reinterpret_cast<decltype(promise) *>(data);
+
+            if (!value)
+            {
+                res->set_value(std::nullopt);
+                return;
+            }
+
+            res->set_value(convert(value));
         };
 
         open(dialog.get(), nullptr, nullptr, callback, &promise);
