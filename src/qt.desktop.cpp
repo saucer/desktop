@@ -51,7 +51,9 @@ namespace saucer::modules
 
         dialog.exec();
 
-        const auto result = dialog.selectedFiles();
+        const auto result = dialog.selectedFiles() |                                              //
+                            std::views::transform([](auto &&str) { return str.toStdString(); }) | //
+                            std::ranges::to<std::vector<fs::path>>();
 
         if (result.empty())
         {
@@ -60,13 +62,11 @@ namespace saucer::modules
 
         if constexpr (Type == picker::type::files)
         {
-            return result |                                                              //
-                   std::views::transform([](auto &&str) { return str.toStdString(); }) | //
-                   std::ranges::to<std::vector<fs::path>>();
+            return result;
         }
         else
         {
-            return result.front().toStdString();
+            return result.front();
         }
     }
 
