@@ -43,7 +43,7 @@ namespace saucer::modules
 
         if (opts.initial)
         {
-            dialog.setDirectory(opts.initial.value());
+            dialog.setDirectory(QString::fromStdString(opts.initial.value()));
         }
 
         const auto filters = opts.filters | std::ranges::to<QStringList>();
@@ -51,9 +51,9 @@ namespace saucer::modules
 
         dialog.exec();
 
-        const auto result = dialog.selectedFiles() |                                              //
-                            std::views::transform([](auto &&str) { return str.toStdString(); }) | //
-                            std::ranges::to<std::vector<fs::path>>();
+        auto result = dialog.selectedFiles() |                                              //
+                      std::views::transform([](auto &&str) { return str.toStdString(); }) | //
+                      std::ranges::to<std::vector<fs::path>>();
 
         if (result.empty())
         {
