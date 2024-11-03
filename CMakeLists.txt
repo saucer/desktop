@@ -54,6 +54,16 @@ if (saucer_backend MATCHES "^Qt.$")
   target_sources(${PROJECT_NAME} PRIVATE ${qt_sources})
 endif()
 
+if (saucer_backend STREQUAL "WebKit")
+  enable_language(OBJCXX)
+  
+  file(GLOB cocoa_sources
+    "src/cocoa.*mm"
+  )
+
+  target_sources(${PROJECT_NAME} PRIVATE ${cocoa_sources})
+endif()
+
 if (saucer_backend STREQUAL "WebKitGtk")
   file(GLOB gtk_sources
     "src/gtk.*cpp"

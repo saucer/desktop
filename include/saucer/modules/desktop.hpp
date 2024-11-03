@@ -6,6 +6,7 @@
 #include <type_traits>
 
 #include <set>
+#include <string>
 #include <optional>
 
 namespace saucer::modules
