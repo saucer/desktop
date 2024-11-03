@@ -1,0 +1,72 @@
+on:
+  push:
+  workflow_dispatch:
+    inputs:
+      ref:
+        type: string
+        default: master
+        description: The ref of saucer to use
+
+name: 🏗️ Build Module
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+
+      matrix:
+        backend: [WebKit, WebKitGtk, WebView2, Qt5, Qt6]
+        config: [Debug, Release]
+
+        include:
+          - backend: WebView2
+            platform: Windows
+            os: windows-latest
+
+          - backend: Qt5
+            platform: Linux
+            os: ubuntu-latest
+            container: archlinux:base-devel
+
+          - backend: Qt6
+            platform: Linux
+            os: ubuntu-latest
+            container: archlinux:base-devel
+
+          - backend: WebKitGtk
+            platform: Linux
+            os: ubuntu-latest
+            container: archlinux:base-devel
+
+          - backend: WebKit
+            platform: MacOS
+            os: macos-latest
+
+    runs-on: ${{ matrix.os }}
+    container: ${{ matrix.container }}
+    name: module-${{ matrix.backend }}-${{ matrix.config }}
+
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
+
+      - name: 📥 Checkout Saucer
+        uses: actions/checkout@v4
+        with:
+          repository: "saucer/saucer"
+          sparse-checkout: ".github"
+          path: "actions"
+          ref: ${{ github.event.inputs.ref || 'master' }}
+
+      - name: 🛸 Setup Saucer
+        uses: ./actions/.github/actions/setup
+        with:
+          backend: ${{ matrix.backend }}
+          platform: ${{ matrix.platform }}
+          build-type: ${{ matrix.config }}
+
+      - name: 📦 Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Module (${{ matrix.backend }}-${{ matrix.config }})
+          path: build

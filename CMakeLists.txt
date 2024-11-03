@@ -8,8 +8,12 @@ project(saucer-desktop LANGUAGES CXX VERSION 1.0.0)
 add_library(${PROJECT_NAME} STATIC)
 add_library(saucer::desktop ALIAS ${PROJECT_NAME})
 
-target_compile_features(${PROJECT_NAME} INTERFACE cxx_std_23)
+target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_23)
 set_target_properties(${PROJECT_NAME} PROPERTIES CXX_STANDARD 23 CXX_EXTENSIONS OFF CXX_STANDARD_REQUIRED ON)
+
+if (PROJECT_IS_TOP_LEVEL AND NOT CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
+  target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wextra -Wpedantic -Werror -pedantic -pedantic-errors -Wfatal-errors)
+endif()
 
 # --------------------------------------------------------------------------------------------------------
 # Include directories
