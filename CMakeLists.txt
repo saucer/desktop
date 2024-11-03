@@ -1,0 +1,63 @@
+cmake_minimum_required(VERSION 3.25)
+project(saucer-desktop LANGUAGES CXX VERSION 1.0.0)
+
+# --------------------------------------------------------------------------------------------------------
+# Setup Library
+# --------------------------------------------------------------------------------------------------------
+
+add_library(${PROJECT_NAME} STATIC)
+add_library(saucer::desktop ALIAS ${PROJECT_NAME})
+
+target_compile_features(${PROJECT_NAME} INTERFACE cxx_std_23)
+set_target_properties(${PROJECT_NAME} PROPERTIES CXX_STANDARD 23 CXX_EXTENSIONS OFF CXX_STANDARD_REQUIRED ON)
+
+# --------------------------------------------------------------------------------------------------------
+# Include directories
+# --------------------------------------------------------------------------------------------------------
+
+target_include_directories(${PROJECT_NAME} PUBLIC  "include")
+
+target_include_directories(${PROJECT_NAME} PRIVATE "private")
+target_include_directories(${PROJECT_NAME} PRIVATE "include/saucer/modules")
+
+# --------------------------------------------------------------------------------------------------------
+# Setup Dependencies
+# --------------------------------------------------------------------------------------------------------
+
+include("cmake/cpm.cmake")
+
+CPMAddPackage(
+  NAME           saucer
+  GIT_TAG        very-experimental
+  GIT_REPOSITORY "https://github.com/saucer/saucer"
+)
+
+saucer_add_module(${PROJECT_NAME})
+
+# --------------------------------------------------------------------------------------------------------
+# Setup Sources
+# --------------------------------------------------------------------------------------------------------
+
+target_sources(${PROJECT_NAME} PRIVATE 
+    "src/desktop.cpp"
+)
+
+# --------------------------------------------------------------------------------------------------------
+# Setup Backends
+# --------------------------------------------------------------------------------------------------------
+
+if (saucer_backend MATCHES "^Qt.$")
+  file(GLOB qt_sources
+    "src/qt.*cpp"
+  )
+
+  target_sources(${PROJECT_NAME} PRIVATE ${qt_sources})
+endif()
+
+if (saucer_backend STREQUAL "WebKitGtk")
+  file(GLOB gtk_sources
+    "src/gtk.*cpp"
+  )
+
+  target_sources(${PROJECT_NAME} PRIVATE ${gtk_sources})
+endif()
