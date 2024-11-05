@@ -30,11 +30,17 @@ target_include_directories(${PROJECT_NAME} PRIVATE "include/saucer/modules")
 
 include("cmake/cpm.cmake")
 
-CPMAddPackage(
-  NAME           saucer
-  GIT_TAG        very-experimental
-  GIT_REPOSITORY "https://github.com/saucer/saucer"
-)
+if (PROJECT_IS_TOP_LEVEL)
+  CPMAddPackage(
+    NAME           saucer
+    GIT_TAG        very-experimental
+    GIT_REPOSITORY "https://github.com/saucer/saucer"
+  )
+endif()
+
+if (NOT TARGET saucer::saucer)
+  message(FATAL_ERROR "Could not find saucer target!")
+endif()
 
 saucer_add_module(${PROJECT_NAME})
 
