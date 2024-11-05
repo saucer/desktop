@@ -89,6 +89,7 @@ namespace saucer::modules
         }
 
         std::vector<fs::path> rtn;
+        rtn.reserve(count);
 
         for (auto i = 0; count > i; ++i)
         {

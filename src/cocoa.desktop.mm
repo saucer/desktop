@@ -46,6 +46,7 @@ namespace saucer::modules
     std::vector<fs::path> convert(const NSArray<NSURL *> *files)
     {
         std::vector<fs::path> rtn;
+        rtn.reserve(count);
 
         for (const NSURL *file : files)
         {

@@ -47,7 +47,7 @@ namespace saucer::modules
         for (auto i = 0u; count > i; ++i)
         {
             auto *const file = reinterpret_cast<GFile *>(g_list_model_get_item(files, i));
-            rtn.emplace_back(g_file_get_path(file));
+            rtn.emplace_back(convert(file));
         }
 
         return rtn;
