@@ -19,7 +19,7 @@ namespace saucer::modules
     {
         if (!m_parent->thread_safe())
         {
-            return m_parent->dispatch([this, uri] { return open(uri); }).get();
+            return m_parent->dispatch([this, uri] { return open(uri); });
         }
 
         ShellExecuteW(nullptr, L"open", utils::widen(uri).c_str(), nullptr, nullptr, SW_SHOWNORMAL);
@@ -30,7 +30,7 @@ namespace saucer::modules
     {
         if (!m_parent->thread_safe())
         {
-            return m_parent->dispatch([this, opts] { return pick<Type>(opts); }).get();
+            return m_parent->dispatch([this, opts] { return pick<Type>(opts); });
         }
 
         ComPtr<IFileOpenDialog> dialog;

@@ -22,7 +22,7 @@ namespace saucer::modules
     {
         if (!m_parent->thread_safe())
         {
-            return m_parent->dispatch([this, uri] { return open(uri); }).get();
+            return m_parent->dispatch([this, uri] { return open(uri); });
         }
 
         QDesktopServices::openUrl(QString::fromStdString(uri));
@@ -33,7 +33,7 @@ namespace saucer::modules
     {
         if (!m_parent->thread_safe())
         {
-            return m_parent->dispatch([this, opts] { return pick<Type>(opts); }).get();
+            return m_parent->dispatch([this, opts] { return pick<Type>(opts); });
         }
 
         QFileDialog dialog;

@@ -13,7 +13,7 @@ namespace saucer::modules
     {
         if (!m_parent->thread_safe())
         {
-            return m_parent->dispatch([this, uri] { return open(uri); }).get();
+            return m_parent->dispatch([this, uri] { return open(uri); });
         }
 
         const utils::autorelease_guard guard{};
@@ -61,7 +61,7 @@ namespace saucer::modules
     {
         if (!m_parent->thread_safe())
         {
-            return m_parent->dispatch([this, opts] { return pick<Type>(opts); }).get();
+            return m_parent->dispatch([this, opts] { return pick<Type>(opts); });
         }
 
         const utils::autorelease_guard guard{};
