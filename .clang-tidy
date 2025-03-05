@@ -45,7 +45,9 @@ Checks: "*,
         -*-avoid-c-arrays,
         -hicpp-no-array-decay,
         -*-array-to-pointer-decay,
-        -readability-isolate-declaration
+        -readability-isolate-declaration,
+        -readability-avoid-return-with-void-value,
+        -misc-use-internal-linkage
 "
 WarningsAsErrors: ''
 HeaderFilterRegex: ''

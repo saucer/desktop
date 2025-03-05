@@ -5,7 +5,11 @@
 #include <filesystem>
 #include <type_traits>
 
+#include <cstdint>
+
 #include <set>
+#include <vector>
+
 #include <string>
 #include <optional>
 
@@ -15,7 +19,7 @@ namespace saucer::modules
 
     namespace picker
     {
-        enum class type
+        enum class type : std::uint8_t
         {
             file,
             files,
@@ -33,6 +37,15 @@ namespace saucer::modules
         using result_t = std::optional<std::conditional_t<T == type::files, std::vector<fs::path>, fs::path>>;
     } // namespace picker
 
+    struct screen
+    {
+        std::string id;
+
+      public:
+        std::pair<int, int> size;
+        std::pair<int, int> position;
+    };
+
     class desktop
     {
         saucer::application *m_parent;
@@ -46,5 +59,9 @@ namespace saucer::modules
       public:
         template <picker::type Type>
         [[nodiscard]] picker::result_t<Type> pick(const picker::options & = {});
+
+      public:
+        [[nodiscard]] std::vector<screen> screens() const;
+        [[nodiscard]] std::pair<int, int> mouse_position() const;
     };
 } // namespace saucer::modules

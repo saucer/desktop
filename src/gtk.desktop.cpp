@@ -119,5 +119,38 @@ namespace saucer::modules
         return fut.get();
     }
 
+    std::vector<screen> desktop::screens() const // NOLINT(*-static)
+    {
+        auto *const display = gdk_display_get_default();
+
+        auto *const monitors = gdk_display_get_monitors(display);
+        const auto size      = g_list_model_get_n_items(monitors);
+
+        std::vector<screen> rtn{};
+        rtn.reserve(size);
+
+        for (auto i = 0ul; size > i; ++i)
+        {
+            auto *const current = reinterpret_cast<GdkMonitor *>(g_list_model_get_item(monitors, i));
+            const auto *model   = gdk_monitor_get_model(current);
+
+            GdkRectangle rect{};
+            gdk_monitor_get_geometry(current, &rect);
+
+            rtn.emplace_back(screen{
+                .id       = model ? model : "",
+                .size     = {rect.width, rect.height},
+                .position = {rect.x, rect.y},
+            });
+        }
+
+        return rtn;
+    }
+
+    std::pair<int, int> desktop::mouse_position() const // NOLINT(*-static)
+    {
+        return {};
+    }
+
     INSTANTIATE_PICKER();
 } // namespace saucer::modules

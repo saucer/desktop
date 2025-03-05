@@ -1,11 +1,13 @@
 #include "desktop.hpp"
 
+#include "qt.app.impl.hpp"
 #include "instantiate.hpp"
 
 #include <tuple>
 #include <ranges>
 
 #include <QUrl>
+#include <QScreen>
 #include <QFileDialog>
 #include <QDesktopServices>
 
@@ -68,6 +70,34 @@ namespace saucer::modules
         {
             return result.front();
         }
+    }
+
+    std::vector<screen> desktop::screens() const
+    {
+        const auto &app    = m_parent->native<false>()->application;
+        const auto screens = app->screens();
+
+        std::vector<screen> rtn{};
+        rtn.reserve(screens.size());
+
+        for (const auto &entry : screens)
+        {
+            const auto geometry = entry->geometry();
+
+            rtn.emplace_back(screen{
+                .id       = entry->name().toStdString(),
+                .size     = {geometry.width(), geometry.height()},
+                .position = {geometry.x(), geometry.y()},
+            });
+        }
+
+        return rtn;
+    }
+
+    std::pair<int, int> desktop::mouse_position() const // NOLINT(*-static)
+    {
+        const auto [x, y] = QCursor::pos();
+        return {x, y};
     }
 
     INSTANTIATE_PICKER();
