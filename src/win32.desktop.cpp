@@ -120,5 +120,46 @@ namespace saucer::modules
         }
     }
 
+    BOOL monitor_callback(HMONITOR monitor, HDC, LPRECT, LPARAM user_data)
+    {
+        auto &rtn = *reinterpret_cast<std::vector<screen> *>(user_data);
+
+        MONITORINFOEXW info{};
+        info.cbSize = sizeof(MONITORINFOEXW);
+
+        if (!GetMonitorInfoW(monitor, &info))
+        {
+            return TRUE;
+        }
+
+        if (info.dwFlags & DISPLAY_DEVICE_MIRRORING_DRIVER)
+        {
+            return TRUE;
+        }
+
+        rtn.emplace_back(screen{
+            .id       = utils::narrow(info.szDevice),
+            .size     = {info.rcMonitor.right - info.rcMonitor.left, info.rcMonitor.bottom - info.rcMonitor.top},
+            .position = {info.rcMonitor.top, info.rcMonitor.left},
+        });
+
+        return TRUE;
+    }
+
+    std::vector<screen> desktop::screens() const // NOLINT(*-static)
+    {
+        std::vector<screen> rtn{};
+        EnumDisplayMonitors(nullptr, nullptr, monitor_callback, reinterpret_cast<LPARAM>(&rtn));
+
+        return rtn;
+    }
+
+    std::pair<int, int> desktop::mouse_position() const // NOLINT(*-static)
+    {
+        POINT pos{};
+        GetCursorPos(&pos);
+        return {pos.x, pos.y};
+    }
+
     INSTANTIATE_PICKER();
 } // namespace saucer::modules
