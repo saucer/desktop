@@ -1,7 +1,9 @@
 #include "desktop.hpp"
 
-#include "win32.utils.hpp"
 #include "instantiate.hpp"
+
+#include "win32.utils.hpp"
+#include "win32.window.impl.hpp"
 
 #include <ranges>
 
@@ -120,6 +122,15 @@ namespace saucer::modules
         }
     }
 
+    screen convert(MONITORINFOEXW monitor)
+    {
+        return {
+            .id       = utils::narrow(monitor.szDevice),
+            .size     = {monitor.rcMonitor.right - monitor.rcMonitor.left, monitor.rcMonitor.bottom - monitor.rcMonitor.top},
+            .position = {monitor.rcMonitor.top, monitor.rcMonitor.left},
+        };
+    }
+
     BOOL monitor_callback(HMONITOR monitor, HDC, LPRECT, LPARAM user_data)
     {
         auto &rtn = *reinterpret_cast<std::vector<screen> *>(user_data);
@@ -137,11 +148,7 @@ namespace saucer::modules
             return TRUE;
         }
 
-        rtn.emplace_back(screen{
-            .id       = utils::narrow(info.szDevice),
-            .size     = {info.rcMonitor.right - info.rcMonitor.left, info.rcMonitor.bottom - info.rcMonitor.top},
-            .position = {info.rcMonitor.top, info.rcMonitor.left},
-        });
+        rtn.emplace_back(convert(info));
 
         return TRUE;
     }
@@ -157,6 +164,31 @@ namespace saucer::modules
         EnumDisplayMonitors(nullptr, nullptr, monitor_callback, reinterpret_cast<LPARAM>(&rtn));
 
         return rtn;
+    }
+
+    std::optional<screen> desktop::screen_at(const window &window) const
+    {
+        if (!m_parent->thread_safe())
+        {
+            return m_parent->dispatch([this, &window] { return screen_at(window); });
+        }
+
+        auto *const monitor = MonitorFromWindow(window.native<false>()->hwnd.get(), MONITOR_DEFAULTTONEAREST);
+
+        if (!monitor)
+        {
+            return std::nullopt;
+        }
+
+        MONITORINFOEXW info{};
+        info.cbSize = sizeof(MONITORINFOEXW);
+
+        if (!GetMonitorInfoW(monitor, &info))
+        {
+            return std::nullopt;
+        }
+
+        return convert(info);
     }
 
     std::pair<int, int> desktop::mouse_position() const
