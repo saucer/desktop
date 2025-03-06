@@ -14,24 +14,9 @@ namespace saucer::modules
         std::make_pair(gtk_file_dialog_save, gtk_file_dialog_save_finish)                    //
     );
 
-    void desktop::open(const std::string &uri)
+    std::pair<int, int> desktop::mouse_position() const // NOLINT(*-static)
     {
-        if (!m_parent->thread_safe())
-        {
-            return m_parent->dispatch([this, uri] { return open(uri); });
-        }
-
-        if (!fs::exists(uri))
-        {
-            auto launcher = utils::g_object_ptr<GtkUriLauncher>{gtk_uri_launcher_new(uri.c_str())};
-            gtk_uri_launcher_launch(launcher.get(), nullptr, nullptr, nullptr, nullptr);
-            return;
-        }
-
-        auto file     = utils::g_object_ptr<GFile>{g_file_new_for_path(uri.c_str())};
-        auto launcher = utils::g_object_ptr<GtkFileLauncher>{gtk_file_launcher_new(file.get())};
-
-        return gtk_file_launcher_launch(launcher.get(), nullptr, nullptr, nullptr, nullptr);
+        return {};
     }
 
     fs::path convert(GFile *file)
@@ -121,68 +106,24 @@ namespace saucer::modules
         return fut.get();
     }
 
-    screen convert(GdkMonitor *monitor)
-    {
-        const auto *model = gdk_monitor_get_model(monitor);
-
-        GdkRectangle rect{};
-        gdk_monitor_get_geometry(monitor, &rect);
-
-        return {
-            .id       = model ? model : "",
-            .size     = {rect.width, rect.height},
-            .position = {rect.x, rect.y},
-        };
-    }
-
-    std::vector<screen> desktop::screens() const
+    void desktop::open(const std::string &uri)
     {
         if (!m_parent->thread_safe())
         {
-            return m_parent->dispatch([this] { return screens(); });
+            return m_parent->dispatch([this, uri] { return open(uri); });
         }
 
-        auto *const display  = gdk_display_get_default();
-        auto *const monitors = gdk_display_get_monitors(display);
-        const auto size      = g_list_model_get_n_items(monitors);
-
-        std::vector<screen> rtn{};
-        rtn.reserve(size);
-
-        for (auto i = 0ul; size > i; ++i)
+        if (!fs::exists(uri))
         {
-            auto *const current = reinterpret_cast<GdkMonitor *>(g_list_model_get_item(monitors, i));
-            rtn.emplace_back(convert(current));
+            auto launcher = utils::g_object_ptr<GtkUriLauncher>{gtk_uri_launcher_new(uri.c_str())};
+            gtk_uri_launcher_launch(launcher.get(), nullptr, nullptr, nullptr, nullptr);
+            return;
         }
 
-        return rtn;
-    }
+        auto file     = utils::g_object_ptr<GFile>{g_file_new_for_path(uri.c_str())};
+        auto launcher = utils::g_object_ptr<GtkFileLauncher>{gtk_file_launcher_new(file.get())};
 
-    std::optional<screen> desktop::screen_at(const window &window) const
-    {
-        if (!m_parent->thread_safe())
-        {
-            return m_parent->dispatch([this, &window] { return screen_at(window); });
-        }
-
-        auto *const display = gdk_display_get_default();
-        auto *const widget  = GTK_WIDGET(window.native<false>()->window.get());
-
-        auto *const native  = gtk_widget_get_native(widget);
-        auto *const surface = gtk_native_get_surface(native);
-        auto *const monitor = gdk_display_get_monitor_at_surface(display, surface);
-
-        if (!monitor)
-        {
-            return std::nullopt;
-        }
-
-        return convert(monitor);
-    }
-
-    std::pair<int, int> desktop::mouse_position() const // NOLINT(*-static)
-    {
-        return {};
+        return gtk_file_launcher_launch(launcher.get(), nullptr, nullptr, nullptr, nullptr);
     }
 
     INSTANTIATE_PICKER();

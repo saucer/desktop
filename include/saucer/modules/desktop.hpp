@@ -55,17 +55,13 @@ namespace saucer::modules
         desktop(saucer::application *parent);
 
       public:
-        void open(const std::string &);
+        [[nodiscard]] std::pair<int, int> mouse_position() const;
 
       public:
         template <picker::type Type>
         [[nodiscard]] picker::result_t<Type> pick(const picker::options & = {});
 
       public:
-        [[nodiscard]] std::vector<screen> screens() const;
-        [[nodiscard]] std::optional<screen> screen_at(const window &) const;
-
-      public:
-        [[nodiscard]] std::pair<int, int> mouse_position() const;
+        void open(const std::string &);
     };
 } // namespace saucer::modules

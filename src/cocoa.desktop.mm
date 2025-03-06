@@ -11,20 +11,18 @@
 
 namespace saucer::modules
 {
-    void desktop::open(const std::string &uri)
+    std::pair<int, int> desktop::mouse_position() const
     {
         const utils::autorelease_guard guard{};
 
         if (!m_parent->thread_safe())
         {
-            return m_parent->dispatch([this, uri] { return open(uri); });
+            return m_parent->dispatch([this] { return mouse_position(); });
         }
 
-        auto *const workspace = [NSWorkspace sharedWorkspace];
-        auto *const str       = [NSString stringWithUTF8String:uri.c_str()];
-        auto *const url       = fs::exists(uri) ? [NSURL fileURLWithPath:str] : [NSURL URLWithString:str];
+        const auto [x, y] = NSEvent.mouseLocation;
 
-        [workspace openURL:url];
+        return {x, y};
     }
 
     template <picker::type Type>
@@ -105,69 +103,20 @@ namespace saucer::modules
         }
     }
 
-    screen convert(NSScreen *screen)
-    {
-        const utils::autorelease_guard guard{};
-
-        return {
-            .id       = screen.localizedName.UTF8String,
-            .size     = {screen.frame.size.width, screen.frame.size.height},
-            .position = {screen.frame.origin.x, screen.frame.origin.y},
-        };
-    }
-
-    std::vector<screen> desktop::screens() const
+    void desktop::open(const std::string &uri)
     {
         const utils::autorelease_guard guard{};
 
         if (!m_parent->thread_safe())
         {
-            return m_parent->dispatch([this] { return screens(); });
+            return m_parent->dispatch([this, uri] { return open(uri); });
         }
 
-        auto *const screens = [NSScreen screens];
+        auto *const workspace = [NSWorkspace sharedWorkspace];
+        auto *const str       = [NSString stringWithUTF8String:uri.c_str()];
+        auto *const url       = fs::exists(uri) ? [NSURL fileURLWithPath:str] : [NSURL URLWithString:str];
 
-        std::vector<screen> rtn{};
-        rtn.reserve(screens.count);
-
-        for (NSScreen *entry : screens)
-        {
-            rtn.emplace_back(convert(entry));
-        }
-
-        return rtn;
-    }
-
-    std::optional<screen> desktop::screen_at(const window &window) const
-    {
-        const utils::autorelease_guard guard{};
-
-        if (!m_parent->thread_safe())
-        {
-            return m_parent->dispatch([this, &window] { return screen_at(window); });
-        }
-
-        auto *const screen = window.native<false>()->window.screen;
-
-        if (!screen)
-        {
-            return std::nullopt;
-        }
-
-        return convert(screen);
-    }
-
-    std::pair<int, int> desktop::mouse_position() const
-    {
-        const utils::autorelease_guard guard{};
-
-        if (!m_parent->thread_safe())
-        {
-            return m_parent->dispatch([this] { return mouse_position(); });
-        }
-
-        const auto [x, y] = NSEvent.mouseLocation;
-        return {x, y};
+        [workspace openURL:url];
     }
 
     INSTANTIATE_PICKER();

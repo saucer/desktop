@@ -17,14 +17,17 @@ namespace saucer::modules
 {
     using Microsoft::WRL::ComPtr;
 
-    void desktop::open(const std::string &uri)
+    std::pair<int, int> desktop::mouse_position() const
     {
         if (!m_parent->thread_safe())
         {
-            return m_parent->dispatch([this, uri] { return open(uri); });
+            return m_parent->dispatch([this] { return mouse_position(); });
         }
 
-        ShellExecuteW(nullptr, L"open", utils::widen(uri).c_str(), nullptr, nullptr, SW_SHOWNORMAL);
+        POINT pos{};
+        GetCursorPos(&pos);
+
+        return {pos.x, pos.y};
     }
 
     template <picker::type Type>
@@ -122,86 +125,14 @@ namespace saucer::modules
         }
     }
 
-    screen convert(MONITORINFOEXW monitor)
-    {
-        return {
-            .id       = utils::narrow(monitor.szDevice),
-            .size     = {monitor.rcMonitor.right - monitor.rcMonitor.left, monitor.rcMonitor.bottom - monitor.rcMonitor.top},
-            .position = {monitor.rcMonitor.top, monitor.rcMonitor.left},
-        };
-    }
-
-    BOOL monitor_callback(HMONITOR monitor, HDC, LPRECT, LPARAM user_data)
-    {
-        auto &rtn = *reinterpret_cast<std::vector<screen> *>(user_data);
-
-        MONITORINFOEXW info{};
-        info.cbSize = sizeof(MONITORINFOEXW);
-
-        if (!GetMonitorInfoW(monitor, &info))
-        {
-            return TRUE;
-        }
-
-        if (info.dwFlags & DISPLAY_DEVICE_MIRRORING_DRIVER)
-        {
-            return TRUE;
-        }
-
-        rtn.emplace_back(convert(info));
-
-        return TRUE;
-    }
-
-    std::vector<screen> desktop::screens() const
+    void desktop::open(const std::string &uri)
     {
         if (!m_parent->thread_safe())
         {
-            return m_parent->dispatch([this] { return screens(); });
+            return m_parent->dispatch([this, uri] { return open(uri); });
         }
 
-        std::vector<screen> rtn{};
-        EnumDisplayMonitors(nullptr, nullptr, monitor_callback, reinterpret_cast<LPARAM>(&rtn));
-
-        return rtn;
-    }
-
-    std::optional<screen> desktop::screen_at(const window &window) const
-    {
-        if (!m_parent->thread_safe())
-        {
-            return m_parent->dispatch([this, &window] { return screen_at(window); });
-        }
-
-        auto *const monitor = MonitorFromWindow(window.native<false>()->hwnd.get(), MONITOR_DEFAULTTONEAREST);
-
-        if (!monitor)
-        {
-            return std::nullopt;
-        }
-
-        MONITORINFOEXW info{};
-        info.cbSize = sizeof(MONITORINFOEXW);
-
-        if (!GetMonitorInfoW(monitor, &info))
-        {
-            return std::nullopt;
-        }
-
-        return convert(info);
-    }
-
-    std::pair<int, int> desktop::mouse_position() const
-    {
-        if (!m_parent->thread_safe())
-        {
-            return m_parent->dispatch([this] { return mouse_position(); });
-        }
-
-        POINT pos{};
-        GetCursorPos(&pos);
-
-        return {pos.x, pos.y};
+        ShellExecuteW(nullptr, L"open", utils::widen(uri).c_str(), nullptr, nullptr, SW_SHOWNORMAL);
     }
 
     INSTANTIATE_PICKER();
