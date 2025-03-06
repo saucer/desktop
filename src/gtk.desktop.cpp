@@ -119,10 +119,14 @@ namespace saucer::modules
         return fut.get();
     }
 
-    std::vector<screen> desktop::screens() const // NOLINT(*-static)
+    std::vector<screen> desktop::screens() const
     {
-        auto *const display = gdk_display_get_default();
+        if (!m_parent->thread_safe())
+        {
+            return m_parent->dispatch([this] { return screens(); });
+        }
 
+        auto *const display  = gdk_display_get_default();
         auto *const monitors = gdk_display_get_monitors(display);
         const auto size      = g_list_model_get_n_items(monitors);
 

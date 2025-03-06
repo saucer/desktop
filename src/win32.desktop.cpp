@@ -146,18 +146,29 @@ namespace saucer::modules
         return TRUE;
     }
 
-    std::vector<screen> desktop::screens() const // NOLINT(*-static)
+    std::vector<screen> desktop::screens() const
     {
+        if (!m_parent->thread_safe())
+        {
+            return m_parent->dispatch([this] { return screens(); });
+        }
+
         std::vector<screen> rtn{};
         EnumDisplayMonitors(nullptr, nullptr, monitor_callback, reinterpret_cast<LPARAM>(&rtn));
 
         return rtn;
     }
 
-    std::pair<int, int> desktop::mouse_position() const // NOLINT(*-static)
+    std::pair<int, int> desktop::mouse_position() const
     {
+        if (!m_parent->thread_safe())
+        {
+            return m_parent->dispatch([this] { return mouse_position(); });
+        }
+
         POINT pos{};
         GetCursorPos(&pos);
+
         return {pos.x, pos.y};
     }
 

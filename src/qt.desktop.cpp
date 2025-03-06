@@ -74,6 +74,11 @@ namespace saucer::modules
 
     std::vector<screen> desktop::screens() const
     {
+        if (!m_parent->thread_safe())
+        {
+            return m_parent->dispatch([this] { return screens(); });
+        }
+
         const auto &app    = m_parent->native<false>()->application;
         const auto screens = app->screens();
 
@@ -94,8 +99,13 @@ namespace saucer::modules
         return rtn;
     }
 
-    std::pair<int, int> desktop::mouse_position() const // NOLINT(*-static)
+    std::pair<int, int> desktop::mouse_position() const
     {
+        if (!m_parent->thread_safe())
+        {
+            return m_parent->dispatch([this] { return mouse_position(); });
+        }
+
         const auto [x, y] = QCursor::pos();
         return {x, y};
     }
