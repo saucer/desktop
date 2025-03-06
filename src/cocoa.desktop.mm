@@ -1,7 +1,9 @@
 #include "cocoa.desktop.impl.hpp"
 
-#include "cocoa.utils.hpp"
 #include "instantiate.hpp"
+
+#include "cocoa.utils.hpp"
+#include "cocoa.window.impl.hpp"
 
 #include <ranges>
 
@@ -103,6 +105,17 @@ namespace saucer::modules
         }
     }
 
+    screen convert(NSScreen *screen)
+    {
+        const utils::autorelease_guard guard{};
+
+        return {
+            .id       = screen.localizedName.UTF8String,
+            .size     = {screen.frame.size.width, screen.frame.size.height},
+            .position = {screen.frame.origin.x, screen.frame.origin.y},
+        };
+    }
+
     std::vector<screen> desktop::screens() const
     {
         const utils::autorelease_guard guard{};
@@ -117,16 +130,31 @@ namespace saucer::modules
         std::vector<screen> rtn{};
         rtn.reserve(screens.count);
 
-        for (const NSScreen *entry : screens)
+        for (NSScreen *entry : screens)
         {
-            rtn.emplace_back(screen{
-                .id       = entry.localizedName.UTF8String,
-                .size     = {entry.frame.size.width, entry.frame.size.height},
-                .position = {entry.frame.origin.x, entry.frame.origin.y},
-            });
+            rtn.emplace_back(convert(entry));
         }
 
         return rtn;
+    }
+
+    std::optional<screen> desktop::screen_at(const window &window) const
+    {
+        const utils::autorelease_guard guard{};
+
+        if (!m_parent->thread_safe())
+        {
+            return m_parent->dispatch([this, &window] { return screen_at(window); });
+        }
+
+        auto *const screen = window.native<false>()->window.screen;
+
+        if (!screen)
+        {
+            return std::nullopt;
+        }
+
+        return convert(screen);
     }
 
     std::pair<int, int> desktop::mouse_position() const
