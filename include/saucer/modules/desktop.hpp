@@ -1,6 +1,7 @@
 #pragma once
 
 #include <saucer/app.hpp>
+#include <saucer/window.hpp>
 
 #include <filesystem>
 #include <type_traits>
@@ -62,6 +63,9 @@ namespace saucer::modules
 
       public:
         [[nodiscard]] std::vector<screen> screens() const;
+        [[nodiscard]] std::optional<screen> screen_at(const window &) const;
+
+      public:
         [[nodiscard]] std::pair<int, int> mouse_position() const;
     };
 } // namespace saucer::modules

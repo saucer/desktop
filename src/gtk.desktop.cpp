@@ -1,7 +1,9 @@
 #include "desktop.hpp"
 
-#include "gtk.utils.hpp"
 #include "instantiate.hpp"
+
+#include "gtk.utils.hpp"
+#include "gtk.window.impl.hpp"
 
 namespace saucer::modules
 {
@@ -119,6 +121,20 @@ namespace saucer::modules
         return fut.get();
     }
 
+    screen convert(GdkMonitor *monitor)
+    {
+        const auto *model = gdk_monitor_get_model(monitor);
+
+        GdkRectangle rect{};
+        gdk_monitor_get_geometry(monitor, &rect);
+
+        return {
+            .id       = model ? model : "",
+            .size     = {rect.width, rect.height},
+            .position = {rect.x, rect.y},
+        };
+    }
+
     std::vector<screen> desktop::screens() const
     {
         if (!m_parent->thread_safe())
@@ -136,19 +152,32 @@ namespace saucer::modules
         for (auto i = 0ul; size > i; ++i)
         {
             auto *const current = reinterpret_cast<GdkMonitor *>(g_list_model_get_item(monitors, i));
-            const auto *model   = gdk_monitor_get_model(current);
-
-            GdkRectangle rect{};
-            gdk_monitor_get_geometry(current, &rect);
-
-            rtn.emplace_back(screen{
-                .id       = model ? model : "",
-                .size     = {rect.width, rect.height},
-                .position = {rect.x, rect.y},
-            });
+            rtn.emplace_back(convert(current));
         }
 
         return rtn;
+    }
+
+    std::optional<screen> desktop::screen_at(const window &window) const
+    {
+        if (!m_parent->thread_safe())
+        {
+            return m_parent->dispatch([this, &window] { return screen_at(window); });
+        }
+
+        auto *const display = gdk_display_get_default();
+        auto *const widget  = GTK_WIDGET(window.native<false>()->window.get());
+
+        auto *const native  = gtk_widget_get_native(widget);
+        auto *const surface = gtk_native_get_surface(native);
+        auto *const monitor = gdk_display_get_monitor_at_surface(display, surface);
+
+        if (!monitor)
+        {
+            return std::nullopt;
+        }
+
+        return convert(monitor);
     }
 
     std::pair<int, int> desktop::mouse_position() const // NOLINT(*-static)

@@ -1,7 +1,9 @@
 #include "desktop.hpp"
 
-#include "qt.app.impl.hpp"
 #include "instantiate.hpp"
+
+#include "qt.app.impl.hpp"
+#include "qt.window.impl.hpp"
 
 #include <tuple>
 #include <ranges>
@@ -72,6 +74,17 @@ namespace saucer::modules
         }
     }
 
+    screen convert(QScreen *screen)
+    {
+        const auto geometry = screen->geometry();
+
+        return {
+            .id       = screen->name().toStdString(),
+            .size     = {geometry.width(), geometry.height()},
+            .position = {geometry.x(), geometry.y()},
+        };
+    }
+
     std::vector<screen> desktop::screens() const
     {
         if (!m_parent->thread_safe())
@@ -87,16 +100,27 @@ namespace saucer::modules
 
         for (const auto &entry : screens)
         {
-            const auto geometry = entry->geometry();
-
-            rtn.emplace_back(screen{
-                .id       = entry->name().toStdString(),
-                .size     = {geometry.width(), geometry.height()},
-                .position = {geometry.x(), geometry.y()},
-            });
+            rtn.emplace_back(convert(entry));
         }
 
         return rtn;
+    }
+
+    std::optional<screen> desktop::screen_at(const window &window) const
+    {
+        if (!m_parent->thread_safe())
+        {
+            return m_parent->dispatch([this, &window] { return screen_at(window); });
+        }
+
+        auto *const screen = window.native<false>()->window->screen();
+
+        if (!screen)
+        {
+            return std::nullopt;
+        }
+
+        return convert(screen);
     }
 
     std::pair<int, int> desktop::mouse_position() const
