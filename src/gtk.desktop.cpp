@@ -1,8 +1,9 @@
 #include "desktop.hpp"
 
+#include "gtk.utils.hpp"
 #include "instantiate.hpp"
 
-#include "gtk.utils.hpp"
+#include "gtk.app.impl.hpp"
 #include "gtk.window.impl.hpp"
 
 namespace saucer::modules
@@ -49,13 +50,6 @@ namespace saucer::modules
         if (!m_parent->thread_safe())
         {
             return m_parent->dispatch([this, opts] { return pick<Type>(opts); });
-        }
-
-        auto *const context = g_main_context_default();
-
-        if (!g_main_context_acquire(context))
-        {
-            return std::nullopt;
         }
 
         auto dialog = utils::g_object_ptr<GtkFileDialog>{gtk_file_dialog_new()};
@@ -107,7 +101,7 @@ namespace saucer::modules
 
         while (fut.wait_for(std::chrono::milliseconds(0)) != std::future_status::ready)
         {
-            g_main_context_iteration(context, true);
+            m_parent->native<false>()->iteration();
         }
 
         return fut.get();
