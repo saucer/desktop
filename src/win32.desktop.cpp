@@ -135,5 +135,5 @@ namespace saucer::modules
         ShellExecuteW(nullptr, L"open", utils::widen(uri).c_str(), nullptr, nullptr, SW_SHOWNORMAL);
     }
 
-    INSTANTIATE_PICKER();
+    INSTANTIATE_PICKER;
 } // namespace saucer::modules

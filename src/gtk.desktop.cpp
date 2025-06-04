@@ -51,6 +51,13 @@ namespace saucer::modules
             return m_parent->dispatch([this, opts] { return pick<Type>(opts); });
         }
 
+        auto *const context = g_main_context_default();
+
+        if (!g_main_context_acquire(context))
+        {
+            return std::nullopt;
+        }
+
         auto dialog = utils::g_object_ptr<GtkFileDialog>{gtk_file_dialog_new()};
 
         if (opts.initial)
@@ -100,7 +107,7 @@ namespace saucer::modules
 
         while (fut.wait_for(std::chrono::milliseconds(0)) != std::future_status::ready)
         {
-            m_parent->run<false>();
+            g_main_context_iteration(context, true);
         }
 
         return fut.get();
@@ -126,5 +133,5 @@ namespace saucer::modules
         return gtk_file_launcher_launch(launcher.get(), nullptr, nullptr, nullptr, nullptr);
     }
 
-    INSTANTIATE_PICKER();
+    INSTANTIATE_PICKER;
 } // namespace saucer::modules

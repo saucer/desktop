@@ -119,5 +119,5 @@ namespace saucer::modules
         [workspace openURL:url];
     }
 
-    INSTANTIATE_PICKER();
+    INSTANTIATE_PICKER;
 } // namespace saucer::modules

@@ -1,7 +1,7 @@
-#include <saucer/instantiate.hpp>
+#pragma once
 
-#define PICKER_INSTANTIATE_IMPL(N, ...)                                                                                     \
-    template picker::result_t<static_cast<picker::type>(N)> desktop::pick<static_cast<picker::type>(N)>(                    \
-        const picker::options &);
-
-#define INSTANTIATE_PICKER() SAUCER_INSTANTIATE(4, PICKER_INSTANTIATE_IMPL, NULL)
+#define INSTANTIATE_PICKER                                                                                                  \
+    template picker::result_t<picker::type::file> desktop::pick<picker::type::file>(const picker::options &);               \
+    template picker::result_t<picker::type::files> desktop::pick<picker::type::files>(const picker::options &);             \
+    template picker::result_t<picker::type::folder> desktop::pick<picker::type::folder>(const picker::options &);           \
+    template picker::result_t<picker::type::save> desktop::pick<picker::type::save>(const picker::options &);

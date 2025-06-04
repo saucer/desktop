@@ -86,5 +86,5 @@ namespace saucer::modules
         QDesktopServices::openUrl(QString::fromStdString(uri));
     }
 
-    INSTANTIATE_PICKER();
+    INSTANTIATE_PICKER;
 } // namespace saucer::modules
