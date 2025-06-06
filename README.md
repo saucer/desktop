@@ -16,7 +16,7 @@
   ```cmake
   CPMFindPackage(
     NAME           saucer-desktop
-    VERSION        2.0.0
+    VERSION        3.0.0
     GIT_REPOSITORY "https://github.com/saucer/desktop"
   )
   ```
@@ -25,7 +25,7 @@
   ```cmake
   include(FetchContent)
 
-  FetchContent_Declare(saucer-desktop GIT_REPOSITORY "https://github.com/saucer/desktop" GIT_TAG v2.0.0)
+  FetchContent_Declare(saucer-desktop GIT_REPOSITORY "https://github.com/saucer/desktop" GIT_TAG v3.0.0)
   FetchContent_MakeAvailable(saucer-desktop)
   ```
 
