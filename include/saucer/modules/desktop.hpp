@@ -56,7 +56,7 @@ namespace saucer::modules
         std::unique_ptr<impl> m_impl;
 
       public:
-        desktop(saucer::application *parent);
+        desktop(application *parent);
 
       public:
         ~desktop();

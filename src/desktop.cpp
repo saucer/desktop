@@ -5,7 +5,7 @@
 
 namespace saucer::modules
 {
-    desktop::desktop(saucer::application *parent) : m_impl(std::make_unique<impl>())
+    desktop::desktop(application *parent) : m_impl(std::make_unique<impl>())
     {
         m_impl->parent = parent;
     }
