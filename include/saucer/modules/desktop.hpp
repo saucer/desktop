@@ -3,10 +3,8 @@
 #include <saucer/app.hpp>
 #include <saucer/window.hpp>
 
-#include <filesystem>
-#include <type_traits>
-
 #include <cstdint>
+#include <filesystem>
 
 #include <set>
 #include <vector>
@@ -34,32 +32,41 @@ namespace saucer::modules
             std::set<std::string> filters{"*"};
         };
 
+        template <type>
+        struct result
+        {
+            using type = fs::path;
+        };
+
+        template <>
+        struct result<type::files>
+        {
+            using type = std::vector<fs::path>;
+        };
+
         template <type T>
-        using result_t = std::optional<std::conditional_t<T == type::files, std::vector<fs::path>, fs::path>>;
+        using result_t = result<T>::type;
     } // namespace picker
 
-    struct screen
+    struct desktop
     {
-        std::string id;
+        struct impl;
 
-      public:
-        std::pair<int, int> size;
-        std::pair<int, int> position;
-    };
-
-    class desktop
-    {
-        saucer::application *m_parent;
+      private:
+        std::unique_ptr<impl> m_impl;
 
       public:
         desktop(saucer::application *parent);
 
       public:
-        [[nodiscard]] std::pair<int, int> mouse_position() const;
+        ~desktop();
 
       public:
-        template <picker::type Type>
-        [[nodiscard]] picker::result_t<Type> pick(const picker::options & = {});
+        [[nodiscard]] position mouse_position() const;
+
+      public:
+        template <picker::type T>
+        [[nodiscard]] std::optional<picker::result_t<T>> pick(picker::options = {});
 
       public:
         void open(const std::string &);

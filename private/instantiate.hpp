@@ -1,7 +1,12 @@
 #pragma once
 
-#define INSTANTIATE_PICKER                                                                                                  \
-    template picker::result_t<picker::type::file> desktop::pick<picker::type::file>(const picker::options &);               \
-    template picker::result_t<picker::type::files> desktop::pick<picker::type::files>(const picker::options &);             \
-    template picker::result_t<picker::type::folder> desktop::pick<picker::type::folder>(const picker::options &);           \
-    template picker::result_t<picker::type::save> desktop::pick<picker::type::save>(const picker::options &);
+#include <saucer/instantiate.hpp>
+
+#define SAUCER_INSTANTIATE_PICKER(CLASS, TYPE)                                                                              \
+    template std::optional<picker::result_t<TYPE>> CLASS::pick<TYPE>(picker::options);
+
+#define SAUCER_INSTANTIATE_DESKTOP_PICKER(TYPE) SAUCER_INSTANTIATE_PICKER(desktop, TYPE)
+#define SAUCER_INSTANTIATE_DESKTOP_IMPL_PICKER(TYPE) SAUCER_INSTANTIATE_PICKER(desktop::impl, TYPE)
+
+#define SAUCER_INSTANTIATE_DESKTOP_PICKERS(MACRO)                                                                           \
+    SAUCER_RECURSE(MACRO, picker::type::file, picker::type::files, picker::type::folder, picker::type::save)

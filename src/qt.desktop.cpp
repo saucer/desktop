@@ -1,20 +1,14 @@
-#include "desktop.hpp"
+#include "desktop.impl.hpp"
 
 #include "instantiate.hpp"
 
-#include "qt.app.impl.hpp"
-#include "qt.window.impl.hpp"
-
-#include <tuple>
-#include <ranges>
-
-#include <QUrl>
-#include <QScreen>
 #include <QFileDialog>
 #include <QDesktopServices>
 
 namespace saucer::modules
 {
+    using impl = desktop::impl;
+
     static constexpr auto modes = std::make_tuple( //
         QFileDialog::ExistingFile,                 //
         QFileDialog::ExistingFiles,                //
@@ -22,29 +16,18 @@ namespace saucer::modules
         QFileDialog::AnyFile                       //
     );
 
-    std::pair<int, int> desktop::mouse_position() const
+    position impl::mouse_position() const // NOLINT(*-static)
     {
-        if (!m_parent->thread_safe())
-        {
-            return m_parent->dispatch([this] { return mouse_position(); });
-        }
-
         const auto pos = QCursor::pos();
-
-        return {pos.x(), pos.y()};
+        return {.x = pos.x(), .y = pos.y()};
     }
 
     template <picker::type Type>
-    picker::result_t<Type> desktop::pick(const picker::options &opts)
+    std::optional<picker::result_t<Type>> impl::pick(picker::options opts)
     {
-        if (!m_parent->thread_safe())
-        {
-            return m_parent->dispatch([this, opts] { return pick<Type>(opts); });
-        }
-
-        QFileDialog dialog;
-
         static constexpr auto mode = std::get<std::to_underlying(Type)>(modes);
+        auto dialog                = QFileDialog{};
+
         dialog.setFileMode(mode);
 
         if (opts.initial)
@@ -57,8 +40,8 @@ namespace saucer::modules
 
         dialog.exec();
 
-        auto result = dialog.selectedFiles() |                                              //
-                      std::views::transform([](auto &&str) { return str.toStdString(); }) | //
+        auto result = dialog.selectedFiles() |                                                                        //
+                      std::views::transform([]<typename T>(T &&str) { return std::forward<T>(str).toStdString(); }) | //
                       std::ranges::to<std::vector<fs::path>>();
 
         if (result.empty())
@@ -76,15 +59,10 @@ namespace saucer::modules
         }
     }
 
-    void desktop::open(const std::string &uri)
+    void impl::open(const std::string &uri) // NOLINT(*-static)
     {
-        if (!m_parent->thread_safe())
-        {
-            return m_parent->dispatch([this, uri] { return open(uri); });
-        }
-
         QDesktopServices::openUrl(QString::fromStdString(uri));
     }
 
-    INSTANTIATE_PICKER;
+    SAUCER_INSTANTIATE_DESKTOP_PICKERS(SAUCER_INSTANTIATE_DESKTOP_IMPL_PICKER)
 } // namespace saucer::modules
