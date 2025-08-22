@@ -2,8 +2,7 @@
 
 #include <saucer/instantiate.hpp>
 
-#define SAUCER_INSTANTIATE_PICKER(CLASS, TYPE)                                                                              \
-    template std::optional<picker::result_t<TYPE>> CLASS::pick<TYPE>(picker::options);
+#define SAUCER_INSTANTIATE_PICKER(CLASS, TYPE) template result<picker::result_t<TYPE>> CLASS::pick<TYPE>(picker::options);
 
 #define SAUCER_INSTANTIATE_DESKTOP_PICKER(TYPE) SAUCER_INSTANTIATE_PICKER(desktop, TYPE)
 #define SAUCER_INSTANTIATE_DESKTOP_IMPL_PICKER(TYPE) SAUCER_INSTANTIATE_PICKER(desktop::impl, TYPE)

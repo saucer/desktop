@@ -18,7 +18,7 @@ namespace saucer::modules
     }
 
     template <picker::type T>
-    std::optional<picker::result_t<T>> desktop::pick(picker::options opts)
+    result<picker::result_t<T>> desktop::pick(picker::options opts)
     {
         if (opts.filters.empty())
         {

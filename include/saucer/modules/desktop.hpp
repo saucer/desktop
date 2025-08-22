@@ -2,14 +2,14 @@
 
 #include <saucer/app.hpp>
 #include <saucer/window.hpp>
+#include <saucer/error/error.hpp>
 
+#include <string>
 #include <cstdint>
 #include <filesystem>
 
 #include <set>
 #include <vector>
-
-#include <string>
 #include <optional>
 
 namespace saucer::modules
@@ -66,7 +66,7 @@ namespace saucer::modules
 
       public:
         template <picker::type T>
-        [[nodiscard]] std::optional<picker::result_t<T>> pick(picker::options = {});
+        [[nodiscard]] result<picker::result_t<T>> pick(picker::options = {});
 
       public:
         void open(const std::string &);

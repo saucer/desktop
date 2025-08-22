@@ -3,6 +3,7 @@
 #include "instantiate.hpp"
 
 #include <saucer/win32.utils.hpp>
+#include <saucer/win32.error.hpp>
 
 namespace saucer::modules
 {
@@ -18,31 +19,27 @@ namespace saucer::modules
     }
 
     template <picker::type Type>
-    std::optional<picker::result_t<Type>> impl::pick(picker::options opts)
+    result<picker::result_t<Type>> impl::pick(picker::options opts)
     {
+        static constexpr auto cls_context = CLSCTX_INPROC_SERVER;
+        static const auto clsid           = CLSID_FileOpenDialog;
+
         ComPtr<IFileOpenDialog> dialog;
 
-        if (!SUCCEEDED(CoCreateInstance(CLSID_FileOpenDialog, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&dialog))))
+        if (auto status = CoCreateInstance(clsid, nullptr, cls_context, IID_PPV_ARGS(&dialog)); !SUCCEEDED(status))
         {
-            return std::nullopt;
+            return err(make_error_code(status));
         }
 
-        auto transform = [](auto &path)
+        auto initial = opts.initial.transform(make_shell_item);
+
+        if (initial.has_value() && !initial.value().has_value())
         {
-            auto rtn        = ComPtr<IShellItem>{};
-            auto wide       = path.make_preferred().wstring();
-            auto *const ppv = reinterpret_cast<void **>(rtn.GetAddressOf());
-
-            SHCreateItemFromParsingName(wide.c_str(), nullptr, IID_IShellItem, ppv);
-
-            return rtn;
-        };
-
-        auto initial = opts.initial.transform(transform);
-
-        if (initial.has_value())
+            return err(initial.value());
+        }
+        else if (initial.has_value())
         {
-            dialog->SetFolder(initial->Get());
+            dialog->SetFolder(initial.value()->Get());
         }
 
         auto allowed = opts.filters                                                          //
@@ -73,9 +70,9 @@ namespace saucer::modules
 
         ComPtr<IShellItemArray> results;
 
-        if (!SUCCEEDED(dialog->GetResults(&results)))
+        if (auto status = dialog->GetResults(&results); !SUCCEEDED(status))
         {
-            return std::nullopt;
+            return err(make_error_code(status));
         }
 
         auto rtn = convert(results.Get());

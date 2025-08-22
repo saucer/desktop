@@ -11,7 +11,7 @@ namespace saucer::modules
 
       public:
         template <picker::type T>
-        [[nodiscard]] std::optional<picker::result_t<T>> pick(picker::options);
+        [[nodiscard]] result<picker::result_t<T>> pick(picker::options);
 
       public:
         void open(const std::string &);

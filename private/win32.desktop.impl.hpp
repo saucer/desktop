@@ -10,5 +10,6 @@ using Microsoft::WRL::ComPtr;
 
 namespace saucer::modules
 {
-    std::optional<std::vector<fs::path>> convert(IShellItemArray *);
+    result<ComPtr<IShellItem>> make_shell_item(fs::path);
+    result<std::vector<fs::path>> convert(IShellItemArray *);
 } // namespace saucer::modules
