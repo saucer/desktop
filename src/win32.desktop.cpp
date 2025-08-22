@@ -1,43 +1,25 @@
-#include "desktop.hpp"
+#include "win32.desktop.impl.hpp"
 
 #include "instantiate.hpp"
 
-#include "win32.utils.hpp"
-#include "win32.window.impl.hpp"
-
-#include <ranges>
-
-#include <windows.h>
-#include <wrl.h>
-
-#include <shobjidl_core.h>
-#include <shldisp.h>
+#include <saucer/win32.utils.hpp>
 
 namespace saucer::modules
 {
+    using impl = desktop::impl;
+
     using Microsoft::WRL::ComPtr;
 
-    std::pair<int, int> desktop::mouse_position() const
+    position impl::mouse_position() const // NOLINT(*-static)
     {
-        if (!m_parent->thread_safe())
-        {
-            return m_parent->dispatch([this] { return mouse_position(); });
-        }
-
         POINT pos{};
         GetCursorPos(&pos);
-
-        return {pos.x, pos.y};
+        return {.x = pos.x, .y = pos.y};
     }
 
     template <picker::type Type>
-    picker::result_t<Type> desktop::pick(const picker::options &opts)
+    std::optional<picker::result_t<Type>> impl::pick(picker::options opts)
     {
-        if (!m_parent->thread_safe())
-        {
-            return m_parent->dispatch([this, opts] { return pick<Type>(opts); });
-        }
-
         ComPtr<IFileOpenDialog> dialog;
 
         if (!SUCCEEDED(CoCreateInstance(CLSID_FileOpenDialog, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&dialog))))
@@ -45,12 +27,18 @@ namespace saucer::modules
             return std::nullopt;
         }
 
-        if (opts.initial)
+        auto transform = []<typename T>(T &&path)
         {
-            ComPtr<IShellItem> item;
-            SHCreateItemFromParsingName(opts.initial->wstring().c_str(), nullptr, IID_PPV_ARGS(&item));
+            ComPtr<IShellItem> rtn;
+            SHCreateItemFromParsingName(std::forward<T>(path).wstring().c_str(), nullptr, IID_PPV_ARGS(&rtn));
+            return rtn;
+        };
 
-            dialog->SetDefaultFolder(item.Get());
+        auto initial = opts.initial.transform(transform);
+
+        if (initial.has_value())
+        {
+            dialog->SetDefaultFolder(initial->Get());
         }
 
         auto allowed = opts.filters                                                          //
@@ -86,34 +74,7 @@ namespace saucer::modules
             return std::nullopt;
         }
 
-        DWORD count{};
-
-        if (!SUCCEEDED(results->GetCount(&count)))
-        {
-            return std::nullopt;
-        }
-
-        std::vector<fs::path> rtn;
-        rtn.reserve(count);
-
-        for (auto i = 0; count > i; ++i)
-        {
-            ComPtr<IShellItem> item;
-
-            if (!SUCCEEDED(results->GetItemAt(i, &item)))
-            {
-                continue;
-            }
-
-            utils::string_handle path;
-
-            if (!SUCCEEDED(item->GetDisplayName(SIGDN_FILESYSPATH, &path.reset())))
-            {
-                continue;
-            }
-
-            rtn.emplace_back(path.get());
-        }
+        auto rtn = convert(results.Get());
 
         if constexpr (Type == picker::type::files)
         {
@@ -121,19 +82,14 @@ namespace saucer::modules
         }
         else
         {
-            return rtn.front();
+            return rtn.transform([](auto &&result) { return result.front(); });
         }
     }
 
-    void desktop::open(const std::string &uri)
+    void impl::open(const std::string &uri) // NOLINT(*-static)
     {
-        if (!m_parent->thread_safe())
-        {
-            return m_parent->dispatch([this, uri] { return open(uri); });
-        }
-
         ShellExecuteW(nullptr, L"open", utils::widen(uri).c_str(), nullptr, nullptr, SW_SHOWNORMAL);
     }
 
-    INSTANTIATE_PICKER;
+    SAUCER_INSTANTIATE_DESKTOP_PICKERS(SAUCER_INSTANTIATE_DESKTOP_IMPL_PICKER);
 } // namespace saucer::modules
