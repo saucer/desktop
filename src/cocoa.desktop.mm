@@ -2,116 +2,62 @@
 
 #include "instantiate.hpp"
 
-#include "cocoa.utils.hpp"
-#include "cocoa.window.impl.hpp"
-
-#include <ranges>
-
-#import <Cocoa/Cocoa.h>
+#include <saucer/cocoa.utils.hpp>
 
 namespace saucer::modules
 {
-    std::pair<int, int> desktop::mouse_position() const
+    using impl = desktop::impl;
+
+    position impl::mouse_position() const // NOLINT(*-static)
     {
-        const utils::autorelease_guard guard{};
-
-        if (!m_parent->thread_safe())
-        {
-            return m_parent->dispatch([this] { return mouse_position(); });
-        }
-
+        const auto guard  = utils::autorelease_guard{};
         const auto [x, y] = NSEvent.mouseLocation;
 
-        return {x, y};
+        return {.x = static_cast<int>(x), .y = static_cast<int>(y)};
     }
 
-    template <picker::type Type>
-    auto *make_panel()
+    template <picker::type T>
+    std::optional<picker::result_t<T>> impl::pick(picker::options opts)
     {
-        if constexpr (Type == picker::type::save)
-        {
-            return [NSSavePanel savePanel];
-        }
-        else
-        {
-            return [NSOpenPanel openPanel];
-        }
-    }
-
-    fs::path convert(const NSURL *file)
-    {
-        return file.absoluteString.UTF8String;
-    }
-
-    std::vector<fs::path> convert(const NSArray<NSURL *> *files)
-    {
-        const utils::autorelease_guard guard{};
-
-        std::vector<fs::path> rtn;
-        rtn.reserve(files.count);
-
-        for (const NSURL *file : files)
-        {
-            rtn.emplace_back(convert(file));
-        }
-
-        return rtn;
-    }
-
-    template <picker::type Type>
-    picker::result_t<Type> desktop::pick(const picker::options &opts)
-    {
-        const utils::autorelease_guard guard{};
-
-        if (!m_parent->thread_safe())
-        {
-            return m_parent->dispatch([this, opts] { return pick<Type>(opts); });
-        }
-
-        auto *const panel = make_panel<Type>();
+        const auto guard   = utils::autorelease_guard{};
+        auto *const dialog = panel<T>::open();
 
         if (opts.initial)
         {
-            [panel setDirectoryURL:[NSURL fileURLWithPath:[NSString stringWithUTF8String:opts.initial->c_str()]]];
+            [dialog setDirectoryURL:[NSURL fileURLWithPath:[NSString stringWithUTF8String:opts.initial->c_str()]]];
         }
 
-        if constexpr (Type == picker::type::files)
+        if constexpr (T == picker::type::files)
         {
-            [panel setAllowsMultipleSelection:YES];
+            [dialog setAllowsMultipleSelection:YES];
         }
-        else if constexpr (Type == picker::type::folder)
+        else if constexpr (T == picker::type::folder)
         {
-            [panel setCanChooseFiles:NO];
-            [panel setCanChooseDirectories:YES];
+            [dialog setCanChooseFiles:NO];
+            [dialog setCanChooseDirectories:YES];
         }
 
-        auto *delegate = [[[PickerDelegate alloc] initWithOptions:&opts] autorelease];
-        [panel setDelegate:delegate];
+        auto *delegate = [[[PickerDelegate alloc] initWithOptions:std::move(opts)] autorelease];
+        [dialog setDelegate:delegate];
 
-        if ([panel runModal] != NSModalResponseOK)
+        if ([dialog runModal] != NSModalResponseOK)
         {
             return std::nullopt;
         }
 
-        if constexpr (Type == picker::type::files)
+        if constexpr (T == picker::type::files)
         {
-            return convert(panel.URLs);
+            return convert(dialog.URLs);
         }
         else
         {
-            return convert(panel.URL);
+            return convert(dialog.URL);
         }
     }
 
-    void desktop::open(const std::string &uri)
+    void impl::open(const std::string &uri) // NOLINT(*-static)
     {
-        const utils::autorelease_guard guard{};
-
-        if (!m_parent->thread_safe())
-        {
-            return m_parent->dispatch([this, uri] { return open(uri); });
-        }
-
+        const auto guard      = utils::autorelease_guard{};
         auto *const workspace = [NSWorkspace sharedWorkspace];
         auto *const str       = [NSString stringWithUTF8String:uri.c_str()];
         auto *const url       = fs::exists(uri) ? [NSURL fileURLWithPath:str] : [NSURL URLWithString:str];
@@ -119,5 +65,5 @@ namespace saucer::modules
         [workspace openURL:url];
     }
 
-    INSTANTIATE_PICKER;
+    SAUCER_INSTANTIATE_DESKTOP_PICKERS(SAUCER_INSTANTIATE_DESKTOP_IMPL_PICKER)
 } // namespace saucer::modules
