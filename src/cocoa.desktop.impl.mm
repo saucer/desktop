@@ -9,17 +9,6 @@
 
 namespace saucer
 {
-    template <modules::picker::type T>
-    NSOpenPanel *modules::panel<T>::open()
-    {
-        return [NSOpenPanel openPanel];
-    };
-
-    NSSavePanel *modules::panel<modules::picker::type::save>::open()
-    {
-        return [NSSavePanel savePanel];
-    }
-
     fs::path modules::convert(const NSURL *file)
     {
         const utils::autorelease_guard guard{};

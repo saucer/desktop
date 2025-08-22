@@ -8,6 +8,19 @@ namespace saucer::modules
 {
     using impl = desktop::impl;
 
+    template <picker::type T>
+    auto *panel()
+    {
+        if constexpr (T == picker::type::save)
+        {
+            return [NSSavePanel savePanel];
+        }
+        else
+        {
+            return [NSOpenPanel openPanel];
+        }
+    }
+
     position impl::mouse_position() const // NOLINT(*-static)
     {
         const auto guard  = utils::autorelease_guard{};
@@ -20,7 +33,7 @@ namespace saucer::modules
     std::optional<picker::result_t<T>> impl::pick(picker::options opts)
     {
         const auto guard   = utils::autorelease_guard{};
-        auto *const dialog = panel<T>::open();
+        auto *const dialog = panel<T>();
 
         if (opts.initial)
         {
