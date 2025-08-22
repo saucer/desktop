@@ -27,10 +27,14 @@ namespace saucer::modules
             return std::nullopt;
         }
 
-        auto transform = []<typename T>(T &&path)
+        auto transform = [](auto &path)
         {
-            ComPtr<IShellItem> rtn;
-            SHCreateItemFromParsingName(std::forward<T>(path).wstring().c_str(), nullptr, IID_PPV_ARGS(&rtn));
+            auto rtn        = ComPtr<IShellItem>{};
+            auto wide       = path.make_preferred().wstring();
+            auto *const ppv = reinterpret_cast<void **>(rtn.GetAddressOf());
+
+            SHCreateItemFromParsingName(wide.c_str(), nullptr, IID_IShellItem, ppv);
+
             return rtn;
         };
 
@@ -38,7 +42,7 @@ namespace saucer::modules
 
         if (initial.has_value())
         {
-            dialog->SetDefaultFolder(initial->Get());
+            dialog->SetFolder(initial->Get());
         }
 
         auto allowed = opts.filters                                                          //
