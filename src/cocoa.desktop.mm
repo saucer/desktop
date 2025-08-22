@@ -30,7 +30,7 @@ namespace saucer::modules
     }
 
     template <picker::type T>
-    std::optional<picker::result_t<T>> impl::pick(picker::options opts)
+    result<picker::result_t<T>> impl::pick(picker::options opts)
     {
         const auto guard   = utils::autorelease_guard{};
         auto *const dialog = panel<T>();
@@ -55,7 +55,7 @@ namespace saucer::modules
 
         if ([dialog runModal] != NSModalResponseOK)
         {
-            return std::nullopt;
+            return err(std::errc::operation_canceled);
         }
 
         if constexpr (T == picker::type::files)

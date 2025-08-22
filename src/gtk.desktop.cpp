@@ -22,7 +22,7 @@ namespace saucer::modules
     }
 
     template <picker::type T>
-    std::optional<picker::result_t<T>> impl::pick(picker::options opts)
+    result<picker::result_t<T>> impl::pick(picker::options opts)
     {
         static constexpr auto open   = std::get<std::to_underlying(T)>(dialogs).first;
         static constexpr auto finish = std::get<std::to_underlying(T)>(dialogs).second;
@@ -50,7 +50,7 @@ namespace saucer::modules
         g_list_store_append(store.get(), filter.get());
         gtk_file_dialog_set_filters(dialog.get(), G_LIST_MODEL(store.get()));
 
-        auto userdata     = std::tuple<std::optional<picker::result_t<T>>, bool>{};
+        auto userdata     = std::tuple<result<picker::result_t<T>>, bool>{};
         auto &[rtn, done] = userdata;
 
         auto callback = [](auto *dialog, auto *res, void *data)
@@ -61,6 +61,10 @@ namespace saucer::modules
             if (value)
             {
                 result = convert(value);
+            }
+            else
+            {
+                result = err(std::errc::operation_canceled);
             }
 
             done = true;

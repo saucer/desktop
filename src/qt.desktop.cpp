@@ -23,7 +23,7 @@ namespace saucer::modules
     }
 
     template <picker::type Type>
-    std::optional<picker::result_t<Type>> impl::pick(picker::options opts)
+    result<picker::result_t<Type>> impl::pick(picker::options opts)
     {
         static constexpr auto mode = std::get<std::to_underlying(Type)>(modes);
         auto dialog                = QFileDialog{};
@@ -46,7 +46,7 @@ namespace saucer::modules
 
         if (result.empty())
         {
-            return std::nullopt;
+            return err(std::errc::operation_canceled);
         }
 
         if constexpr (Type == picker::type::files)
