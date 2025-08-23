@@ -72,7 +72,7 @@ namespace saucer::modules
 
         if (auto status = dialog->GetResults(&results); !SUCCEEDED(status))
         {
-            return err(make_error_code(status));
+            return err(std::errc::operation_canceled);
         }
 
         auto rtn = convert(results.Get());
