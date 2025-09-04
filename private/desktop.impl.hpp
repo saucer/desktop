@@ -1,4 +1,6 @@
-#include "desktop.hpp"
+#pragma once
+
+#include <saucer/modules/desktop.hpp>
 
 namespace saucer::modules
 {

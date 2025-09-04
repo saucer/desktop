@@ -2,6 +2,8 @@
 
 #include "instantiate.hpp"
 
+#include <saucer/error.impl.hpp>
+
 #include <QFileDialog>
 #include <QDesktopServices>
 

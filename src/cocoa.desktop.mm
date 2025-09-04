@@ -2,6 +2,7 @@
 
 #include "instantiate.hpp"
 
+#include <saucer/error.impl.hpp>
 #include <saucer/cocoa.utils.hpp>
 
 namespace saucer::modules

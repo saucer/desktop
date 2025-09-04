@@ -3,6 +3,7 @@
 #include "instantiate.hpp"
 
 #include <saucer/gtk.utils.hpp>
+#include <saucer/error.impl.hpp>
 #include <saucer/gtk.app.impl.hpp>
 
 namespace saucer::modules
