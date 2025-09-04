@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.25)
-project(saucer-desktop LANGUAGES CXX VERSION 3.0.0)
+project(saucer-desktop LANGUAGES CXX VERSION 4.0.0)
 
 # --------------------------------------------------------------------------------------------------------
 # Setup Library
@@ -20,9 +20,7 @@ endif()
 # --------------------------------------------------------------------------------------------------------
 
 target_include_directories(${PROJECT_NAME} PUBLIC  "include")
-
 target_include_directories(${PROJECT_NAME} PRIVATE "private")
-target_include_directories(${PROJECT_NAME} PRIVATE "include/saucer/modules")
 
 # --------------------------------------------------------------------------------------------------------
 # Setup Dependencies
