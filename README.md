@@ -16,7 +16,7 @@
   ```cmake
   CPMFindPackage(
     NAME           saucer-desktop
-    VERSION        2.0.0
+    VERSION        4.0.0
     GIT_REPOSITORY "https://github.com/saucer/desktop"
   )
   ```
@@ -25,7 +25,7 @@
   ```cmake
   include(FetchContent)
 
-  FetchContent_Declare(saucer-desktop GIT_REPOSITORY "https://github.com/saucer/desktop" GIT_TAG v2.0.0)
+  FetchContent_Declare(saucer-desktop GIT_REPOSITORY "https://github.com/saucer/desktop" GIT_TAG v4.0.0)
   FetchContent_MakeAvailable(saucer-desktop)
   ```
 
@@ -37,12 +37,4 @@ target_link_libraries(<target> saucer::desktop)
 
 ## 📃 Usage
 
-```cpp
-using saucer::modules::desktop::picker::type;
-
-auto app      = saucer::application::acquire(/*...*/);
-auto& desktop = app->add_module<saucer::modules::desktop>();
-
-desktop.open("https://google.com");
-auto file = desktop.pick<type::file>({.filters = {"*.cpp"}});
-```
+For a usage example see the [desktop-example](https://github.com/saucer/saucer/blob/master/examples/desktop/main.cpp)
