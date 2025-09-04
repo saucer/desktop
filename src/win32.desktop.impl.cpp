@@ -12,7 +12,7 @@ namespace saucer
 
         if (auto status = SHCreateItemFromParsingName(path.c_str(), nullptr, IID_PPV_ARGS(&rtn)); !SUCCEEDED(status))
         {
-            return err(make_error_code(status));
+            return err(status);
         }
 
         return rtn;
@@ -24,7 +24,7 @@ namespace saucer
 
         if (auto status = files->GetCount(&count); !SUCCEEDED(status))
         {
-            return err(make_error_code(status));
+            return err(status);
         }
 
         std::vector<fs::path> rtn;
@@ -36,14 +36,14 @@ namespace saucer
 
             if (auto status = files->GetItemAt(i, &item); !SUCCEEDED(status))
             {
-                return err(make_error_code(status));
+                return err(status);
             }
 
             utils::string_handle path;
 
             if (auto status = item->GetDisplayName(SIGDN_FILESYSPATH, &path.reset()); !SUCCEEDED(status))
             {
-                return err(make_error_code(status));
+                return err(status);
             }
 
             rtn.emplace_back(path.get());

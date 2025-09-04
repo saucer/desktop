@@ -28,7 +28,7 @@ namespace saucer::modules
 
         if (auto status = CoCreateInstance(clsid, nullptr, cls_context, IID_PPV_ARGS(&dialog)); !SUCCEEDED(status))
         {
-            return err(make_error_code(status));
+            return err(status);
         }
 
         auto initial = opts.initial.transform(make_shell_item);
