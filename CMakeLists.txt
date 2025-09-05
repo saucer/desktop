@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.25)
-project(saucer-desktop LANGUAGES CXX VERSION 4.0.1)
+project(saucer-desktop LANGUAGES CXX VERSION 4.0.2)
 
 # --------------------------------------------------------------------------------------------------------
 # Setup Library

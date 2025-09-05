@@ -14,7 +14,7 @@ namespace saucer::modules
 
     position desktop::mouse_position() const
     {
-        return invoke<&impl::mouse_position>(m_impl.get());
+        return utils::invoke<&impl::mouse_position>(m_impl.get());
     }
 
     template <picker::type T>
@@ -25,12 +25,12 @@ namespace saucer::modules
             opts.filters.emplace("*");
         }
 
-        return invoke<&impl::pick<T>>(m_impl.get(), std::move(opts));
+        return utils::invoke<&impl::pick<T>>(m_impl.get(), std::move(opts));
     }
 
     void desktop::open(const std::string &uri)
     {
-        return invoke<&impl::open>(m_impl.get(), uri);
+        return utils::invoke<&impl::open>(m_impl.get(), uri);
     }
 
     SAUCER_INSTANTIATE_DESKTOP_PICKERS(SAUCER_INSTANTIATE_DESKTOP_PICKER)
