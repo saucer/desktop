@@ -15,7 +15,7 @@ jobs:
       fail-fast: false
 
       matrix:
-        backend: [WebKit, WebKitGtk, WebView2, Qt5, Qt6]
+        backend: [WebKit, WebKitGtk, WebView2, Qt6]
         config: [Debug, Release]
 
         include:
@@ -23,12 +23,7 @@ jobs:
             platform: Windows
             os: windows-latest
 
-          - backend: Qt5
-            platform: Linux
-            os: ubuntu-latest
-            container: archlinux:base-devel
-
-          - backend: Qt6
+          - backend: Qt
             platform: Linux
             os: ubuntu-latest
             container: archlinux:base-devel
