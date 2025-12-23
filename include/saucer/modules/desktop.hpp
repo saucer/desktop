@@ -29,7 +29,7 @@ namespace saucer::modules
         struct options
         {
             std::optional<fs::path> initial;
-            std::set<std::string> filters{"*"};
+            std::set<std::string> filters;
         };
 
         template <type>

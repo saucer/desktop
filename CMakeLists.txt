@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.25)
-project(saucer-desktop LANGUAGES CXX VERSION 4.1.0)
+project(saucer-desktop LANGUAGES CXX VERSION 4.2.0)
 
 # --------------------------------------------------------------------------------------------------------
 # Setup Library
@@ -46,7 +46,7 @@ saucer_add_module(${PROJECT_NAME})
 # Setup Sources
 # --------------------------------------------------------------------------------------------------------
 
-target_sources(${PROJECT_NAME} PRIVATE 
+target_sources(${PROJECT_NAME} PRIVATE
     "src/desktop.cpp"
 )
 
@@ -64,7 +64,7 @@ endif()
 
 if (saucer_backend STREQUAL "WebKit")
   enable_language(OBJCXX)
-  
+
   file(GLOB cocoa_sources
     "src/cocoa.*mm"
   )
